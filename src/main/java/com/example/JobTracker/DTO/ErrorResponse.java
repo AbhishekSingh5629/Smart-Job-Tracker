@@ -1,12 +1,13 @@
 package com.example.JobTracker.DTO;
 
-
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ErrorResponse {
     private boolean success;
     private String message;
-    private String error;
+    private Map<String, String> errors;
     private int status;
     private LocalDateTime timestamp;
     private String path;
@@ -14,16 +15,30 @@ public class ErrorResponse {
     public ErrorResponse() {
         this.success = false;
         this.timestamp = LocalDateTime.now();
+        this.errors = new HashMap<>();
     }
 
-    public ErrorResponse(String message, String error, int status, String path) {
+    public ErrorResponse(String message, int status, String path) {
         this();
         this.message = message;
-        this.error = error;
         this.status = status;
         this.path = path;
     }
 
+    public ErrorResponse(String message, Map<String, String> errors, int status, String path) {
+        this();
+        this.message = message;
+        this.errors = errors;
+        this.status = status;
+        this.path = path;
+    }
+
+    // Add single error
+    public void addError(String field, String errorMessage) {
+        this.errors.put(field, errorMessage);
+    }
+
+    // Getters and Setters
     public boolean isSuccess() {
         return success;
     }
@@ -40,12 +55,12 @@ public class ErrorResponse {
         this.message = message;
     }
 
-    public String getError() {
-        return error;
+    public Map<String, String> getErrors() {
+        return errors;
     }
 
-    public void setError(String error) {
-        this.error = error;
+    public void setErrors(Map<String, String> errors) {
+        this.errors = errors;
     }
 
     public int getStatus() {

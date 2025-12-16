@@ -6,11 +6,14 @@ import com.example.JobTracker.Mapper.UserMapper;
 import com.example.JobTracker.Model.User;
 import com.example.JobTracker.Repository.UserRepository;
 //import com.example.JobTracker.util.JwtUtil;
+import com.example.JobTracker.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -21,11 +24,12 @@ public class UserService {
     @Autowired
     private UserMapper userMapper;
 
-//
-//    @Autowired
-//    private JwtUtil jwtUtil;
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
     public UserResponse registerUser(RegisterRequest dto) {
+        validateRegistration(dto);
         if (userRepository.existsByEmail(dto.getEmail())) {
             throw new EmailAlreadyExistsException(dto.getEmail());
         }
@@ -41,6 +45,37 @@ public class UserService {
 
         User savedUser = userRepository.save(user);
         return  userMapper.toresponse(savedUser);
+    }
+    private void validateRegistration(RegisterRequest dto) {
+        Map<String, String> errors = new HashMap<>();
+
+        if (dto.getEmail() == null || dto.getEmail().trim().isEmpty()) {
+            errors.put("email", "Email is required");
+        } else if (!dto.getEmail().matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+            errors.put("email", "Invalid email format");
+        } else if (userRepository.existsByEmail(dto.getEmail())) {
+            errors.put("email", "Email already exists");
+        }
+
+        if (dto.getName() == null || dto.getName().trim().isEmpty()) {
+            errors.put("name", "Name is required");
+        } else if (dto.getName().length() < 2) {
+            errors.put("name", "Name must be at least 2 characters");
+        }
+
+        if (dto.getPassword() == null || dto.getPassword().trim().isEmpty()) {
+            errors.put("password", "Password is required");
+        } else if (dto.getPassword().length() < 8) {
+            errors.put("password", "Password must be at least 8 characters");
+        } else if (!dto.getPassword().matches(".*\\d.*")) {
+            errors.put("password", "Password must include a number");
+        } else if (!dto.getPassword().matches(".*[A-Z].*")) {
+            errors.put("password", "Password must include an uppercase letter");
+        }
+
+        if (!errors.isEmpty()) {
+            throw new ValidationException("Validation failed", errors);
+        }
     }
 
     public LoginResponse loginUser(LoginRequest dto) {
@@ -58,8 +93,8 @@ public class UserService {
         user.setLastLogin(LocalDateTime.now());
         userRepository.save(user);
 
-//        String token = jwtUtil.generateToken(user.getId(), user.getEmail(), user.getRole());
-        String token="dummy-token-for-testing";
+        String token = jwtUtil.generateToken(user.getId(), user.getEmail(), user.getRole());
+//        String token="dummy-token-for-testing";
 
         UserResponse userResponse = userMapper.toresponse(user);
         return new LoginResponse(true, "Login successful", token, userResponse);

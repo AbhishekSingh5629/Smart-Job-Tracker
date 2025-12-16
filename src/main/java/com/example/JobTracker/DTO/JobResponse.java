@@ -19,18 +19,6 @@ public class JobResponse {
 
     public JobResponse() {}
 
-    public JobResponse(Job job) {
-        this.id = job.getId();
-        this.userId = job.getUserId();
-        this.company = job.getCompany();
-        this.role = job.getRole();
-        this.appliedDate = job.getAppliedDate();
-        this.source = job.getSource();
-        this.status = job.getStatus();
-        this.deadline = job.getDeadline();
-        this.createdAt = job.getCreatedAt();
-        this.updatedAt = job.getUpdatedAt();
-    }
 
     public Long getId() {
         return id;

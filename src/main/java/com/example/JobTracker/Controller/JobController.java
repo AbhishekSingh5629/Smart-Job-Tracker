@@ -4,6 +4,7 @@ import com.example.JobTracker.DTO.JobRequest;
 import com.example.JobTracker.DTO.JobResponse;
 import com.example.JobTracker.CustomException.JobNotFoundException;
 import com.example.JobTracker.Service.JobService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,9 +41,14 @@ public class JobController {
     }
 
     @PostMapping
-    public ResponseEntity<Map<String, Object>> addJob(@RequestBody JobRequest dto) {
+    public ResponseEntity<Map<String, Object>> addJob(
+            @RequestBody JobRequest dto,
+            HttpServletRequest request
+    ) {
         try {
-            JobResponse savedJob = jobService.addJob(dto);
+            Long userId = (Long) request.getAttribute("userId");
+
+            JobResponse savedJob = jobService.addJob(dto, userId);
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
@@ -115,7 +121,11 @@ public class JobController {
         Map<String, Object> stats = jobService.getStatistics(userId);
         return ResponseEntity.ok(stats);
     }
-
+    @GetMapping("/user/{userId}/dashboard-stats")
+    public ResponseEntity<Map<String, Object>> getDashboardStats(@PathVariable Long userId) {
+        Map<String, Object> stats = jobService.getUserDashboardStats(userId);
+        return ResponseEntity.ok(stats);
+    }
     @GetMapping("/health")
     public ResponseEntity<Map<String, String>> healthCheck() {
         Map<String, String> response = new HashMap<>();
